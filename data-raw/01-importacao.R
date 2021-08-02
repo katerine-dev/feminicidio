@@ -1,4 +1,4 @@
-# Importação --------------------------------------------------------------
+# Importação ------------------------------------------------------------------------------------------------------------------------------------
 
 # caminho para as bases principais
 path_bases <-  "~/Documents/feminicidio/data-raw/base_feminicidio/"
@@ -12,5 +12,3 @@ importar_bases <- fs::dir_ls(path = path_bases, pattern = ".xls")
 # empilhando as bases pela função criada.
 bases_empilhadas <- purrr::map_dfr(importar_bases, ler_uma_base)
 
-
-usethis::use_data(bases_empilhadas, overwrite = TRUE) # base suja

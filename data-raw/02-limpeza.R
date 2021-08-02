@@ -1,15 +1,16 @@
-# Faxina de dados ---------------------------------------------------------
-feminicidio::bases_empilhadas |>
+# Faxina de dados -------------------------------------------------------------------------------------------------------------------------------
+
+bases_empilhadas |>
   dplyr::glimpse() # visualizar a base
 
-feminicidio::bases_empilhadas |>
+bases_empilhadas |>
   dplyr::count(ANO_BO,
                NUM_BO,
                DELEGACIA_CIRCUNSCRICAO,
                DELEGACIA_NOME) #identificando os duplicados
 
 # Arrumando os nomes das colunas:
-nomes_arrumado_base <- feminicidio::bases_empilhadas |>
+nomes_arrumado_base <- bases_empilhadas |>
   janitor::clean_names() |>
   janitor::remove_empty(c("rows", "cols"))  # retirando as colunas e linhas vazias para melhorar a visualizacao
 
@@ -19,7 +20,7 @@ nomes_arrumado_base |>
 
 # Ramificando a base  ---------------------------------------------------------------------------------------------------------------------------
 
-# 1) Arrumando a duplicidade e unindo colunas relacionadas as delegacias e infrações
+# 1) Arrumando a duplicidade e unindo colunas relacionadas as delegacias e infrações (BASE: infracoes_arrumado)
 infracoes_arrumado <- nomes_arrumado_base |>
   dplyr::select(
     num_bo,
@@ -64,7 +65,7 @@ infracoes_arrumado |>
   dplyr::glimpse() # verificando classe das colunas
 
 
-# 2) Arrumando a duplicidade e unindo colunas relacionadas a data e horarios
+# 2) Arrumando a duplicidade e unindo colunas relacionadas a data e horarios (BASE: datas_arrumado)
 datas_arrumado <- nomes_arrumado_base |>
   dplyr::select(
     num_bo,
@@ -77,8 +78,8 @@ datas_arrumado <- nomes_arrumado_base |>
     horaocorrencia,
     #dataelaboracao, # foi identificado que era igual a coluna bo_iniciado
     peridoocorrencia,
-    datacomunicacao,
-    numero_boletim_principal
+    datacomunicacao
+    # resolvi não utilizar o numero boletim principal, informação irrelevante
   ) |>
   dplyr::distinct() |>
   dplyr::mutate(dplyr::across(c(bo_iniciado,
@@ -87,12 +88,12 @@ datas_arrumado <- nomes_arrumado_base |>
   dplyr::mutate(dhocorrencia = stringr::str_remove(dhocorrencia, " NA")) |>
   dplyr::mutate(dhocorrencia = lubridate::dmy_hm(dhocorrencia)) |>
   dplyr::mutate(datacomunicacao =  lubridate::dmy(datacomunicacao)) |>
-  dplyr::mutate(periodoocorrencia = limpa_strings(periodoocorrencia))
+  dplyr::mutate(peridoocorrencia = limpa_strings(peridoocorrencia))
 
 datas_arrumado |>
   dplyr::glimpse() # verificando classe das colunas
 
-# 3) Arrumando a duplicidade e unindo colunas relacionadas as partes
+# 3) Arrumando a duplicidade e unindo colunas relacionadas as partes (BASE: partes_arrumado)
 partes_arrumado <- nomes_arrumado_base |>
   dplyr::select(
     num_bo,
@@ -130,14 +131,15 @@ partes_arrumado <- nomes_arrumado_base |>
     limpa_strings
   )) |>
   dplyr::mutate(idade = as.numeric(idade)) |>
- dplyr::mutate(datanascimento = as.Date(datanascimento))
+  dplyr::mutate(datanascimento = as.Date(datanascimento))
 
 partes_arrumado |>
-  dplyr::glimpse()
+  dplyr::glimpse() # para visualização
 
-# 4) Arrumando a duplicidade e unindo colunas relacionadas as endereços
+# 4) Arrumando a duplicidade e unindo colunas relacionadas as endereços (BASE: endereco_arrumado)
 
-loc <- readr::locale(decimal_mark = ",", grouping_mark = ".") # para arrumar latitude e longitude
+loc <-
+  readr::locale(decimal_mark = ",", grouping_mark = ".") # para arrumar latitude e longitude
 
 endereco_arrumado <- nomes_arrumado_base |>
   dplyr::select(
@@ -166,6 +168,12 @@ endereco_arrumado |>
   dplyr::glimpse() #para visualização
 
 # Join
+base_final_tidy <- infracoes_arrumado |>
+  dplyr::left_join(datas_arrumado) |>
+  dplyr::left_join(partes_arrumado) |>
+  dplyr::left_join(endereco_arrumado)
 
 
-#usethis::use_data(DATASET, overwrite = TRUE)
+
+
+usethis::use_data(base_final_tidy, overwrite = TRUE)
