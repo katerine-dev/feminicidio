@@ -1,0 +1,19 @@
+Package: feminicidio
+Title: Leitura e analise de dados sobre feminicidio
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Katerine",
+           family = "Witkoski",
+           role = c("aut", "cre"),
+           email = "kwitkoski@abj.org.br",
+           comment = c(ORCID = "0000-0002-3691-6569"))
+Description: Faxina de dados sobre uma base publica do portal de transparencia.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+URL: https://github.com/katerine-dev/feminicidio
+BugReports: https://github.com/katerine-dev/feminicidio/issues
+Depends: 
+    R (>= 2.10)
