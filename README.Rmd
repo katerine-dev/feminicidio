@@ -71,14 +71,14 @@ Foi decidido dividir os dados entre 4 bases tidys relacionadas pelo o assunto pa
 Finalizando a arrumação foi realizado um join entre elas produzindo a `base_final_tidy`. Escolhi separar as informações relacionadas as partes constituindo assim a base específica de `partes_tidy`.
 
 ```{r}
-#base_final_tidy |>  
- #dplyr::glimpse()
+feminicidio::base_final_tidy |>  
+ dplyr::glimpse()
 ```
 Nessa observamos as informações mais genéricas sobre os casos, contendo infrações, endereços e delegacias. 
 
 ```{r}
-#partes_tidy  |>  
- #dplyr::glimpse()
+feminicidio::partes_tidy  |>  
+ dplyr::glimpse()
 ```
 Essa base é mais específica, contendo informações das partes envonvidas nos crimes. Em alguns casos haviam mais de uma vítima com desfechos diferentes e qualidades diferentes. Para deixar as informações mais individuais foi decidido separar essas variáveis da base principal. 
 
@@ -91,8 +91,7 @@ Essa base é mais específica, contendo informações das partes envonvidas nos 
 
 
 
-
-
+<img src='man/figs/feminista.png' align="left" height="139" /></a>
 
 _"Feminismo é um movimento para acabar com sexismo, exploração sexista e opressão"_ <font size="1">1</font>
 

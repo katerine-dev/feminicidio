@@ -4,7 +4,6 @@
 #'
 #' @param path caminho para a pasta que esta as bases.
 #'
-#' @return
 #'
 #' @export
 ler_uma_base <- function(path) {

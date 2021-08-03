@@ -9,9 +9,6 @@ ler_uma_base(path)
 \arguments{
 \item{path}{caminho para a pasta que esta as bases.}
 }
-\value{
-
-}
 \description{
 Essa função facilita a leitura das bases principais
 }

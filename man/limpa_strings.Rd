@@ -9,9 +9,6 @@ limpa_strings(str)
 \arguments{
 \item{str}{string que esta suja.}
 }
-\value{
-
-}
 \description{
 Essa função facilita a limpeza de strings
 }

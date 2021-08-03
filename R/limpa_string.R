@@ -4,8 +4,6 @@
 #'
 #' @param str string que esta suja.
 #'
-#' @return
-#'
 #' @export
 limpa_strings <- function(str) {
   str |>
