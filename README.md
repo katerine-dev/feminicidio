@@ -173,7 +173,7 @@ vítima o nº de incidentes (ocorrências registradas) é muito mais
 atenuante quando tem qualquer tipo de envolvimento amoroso, concluindo
 então que o agressor não será apenas o marido ou companheiro.
 
-##### Denuncie
+### Denuncie
 
 É perceptivel que esse cenário é muito difícil e traumático. Caso você
 queria ajudar uma vítima de violência doméstica denuncie nos seguintes
