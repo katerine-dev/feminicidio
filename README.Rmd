@@ -6,7 +6,10 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  echo = FALSE, 
+  message = FALSE, 
+  warning = FALSE,
+  fig.align = "center",
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%"
@@ -70,13 +73,13 @@ Foi decidido dividir os dados entre 4 bases tidys relacionadas pelo o assunto pa
 
 Finalizando a arrumação foi realizado um join entre elas produzindo a `base_final_tidy`. Escolhi separar as informações relacionadas as partes constituindo assim a base específica de `partes_tidy`.
 
-```{r}
+```{r echo=TRUE}
 feminicidio::base_final_tidy |>  
  dplyr::glimpse()
 ```
 Nessa observamos as informações mais genéricas sobre os casos, contendo infrações, endereços e delegacias. 
 
-```{r}
+```{r echo=TRUE}
 feminicidio::partes_tidy  |>  
  dplyr::glimpse()
 ```
@@ -84,15 +87,111 @@ Essa base é mais específica, contendo informações das partes envonvidas nos 
 
 ## Resultados 
 
+### Incidentes por dia de semana 
+
+```{r incidentes-diasemana}
+feminicidio::base_final_tidy |>
+  dplyr::select(num_bo, ano_bo, dhocorrencia) |>
+  dplyr::mutate(diasemana = lubridate::wday(dhocorrencia)) |>
+  dplyr::filter(diasemana != "NA") |>
+  dplyr::mutate(diasemana = as.character(diasemana)) |>
+  dplyr::mutate(
+    diasemana = dplyr::case_when(
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("1")) ~ "Segunda",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("2")) ~ "Terça",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("3")) ~ "Quarta",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("4")) ~ "Quinta",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("5")) ~ "Sexta",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("6")) ~ "Sábado",
+      diasemana =  stringr::str_detect(diasemana, stringr::regex("7")) ~ "Domingo",
+      TRUE ~ diasemana
+    )
+  ) |>
+  dplyr::group_by(diasemana) |>
+  dplyr::count(ano_bo) |>
+  ggplot2::ggplot(ggplot2::aes(x = n, y = diasemana, fill = n)) +
+  ggplot2::geom_tile(colour = "white") +
+  ggplot2::facet_wrap( ~ ano_bo, ncol = 1) +
+  ggplot2::labs(x = "Incidentes", y = "Dia da semana ", fill = "Nº de Incidentes") +
+  ggplot2::scale_fill_gradient2(low = "#fad8fa",
+                                mid = "#f5b6f5",
+                                high = "#300630") +
+  ggplot2::theme_light(10)
+```
+
+Podemos observar que o nº de incidente piora principalmente nos finais de semana e começo da semana, concluindo portanto que nestes dias a concentração da convivência entre o agressor e a vítima dentro de casa eleva o número de registro de ocorrência. Outros fatores de risco que agravam é o consumo excessivo de álcool nos finais de semana e eventos que possam elevar o estresse dentro de casa. 
+
+### Período da ocorrência
+
+```{r periodoocorrencia-prop}
+
+feminicidio::base_final_tidy |>
+  dplyr::select(ano_bo, peridoocorrencia) |>
+  dplyr::group_by(ano_bo) |>
+  dplyr::mutate(peridoocorrencia = stringr::str_to_title(peridoocorrencia)) |>
+  dplyr::mutate(
+    peridoocorrencia = dplyr::case_when(
+      stringr::str_detect(peridoocorrencia, stringr::regex("Pela Manha")) ~ "Pela Manhã",
+      stringr::str_detect(peridoocorrencia, stringr::regex("A Noite")) ~ "Noite",
+      stringr::str_detect(peridoocorrencia, stringr::regex("A Tarde")) ~ "Tarde",
+      TRUE ~ peridoocorrencia
+    )
+  ) |>
+  dplyr::count(peridoocorrencia) |>
+  dplyr::mutate(prop = n / sum(n)) |>
+  dplyr::mutate(prop = formattable::percent(prop)) |>
+  dplyr::mutate(ano_bo = as.character(ano_bo)) |>
+  dplyr::mutate(peridoocorrencia = forcats::fct_reorder(peridoocorrencia, n)) |>
+  ggplot2::ggplot(ggplot2::aes(x = prop, y = peridoocorrencia, fill = ano_bo)) +
+  ggplot2::geom_col(position = "dodge") +
+  ggplot2::scale_x_continuous(labels = scales::percent) +
+  ggplot2::scale_fill_manual(values = c("#D8BFD8", "#EE82EE")) +
+  ggplot2::labs(x = "Proporção", y = "Periodo da ocorrência", fill = "Ano") +
+  ggplot2::theme_minimal(10)
+```
+
+O período mais constante é a noite/madrugada entre os anos de 2020 e 2021 os crimes ocorreram pelo menos 34.68% e 24.64% respectivamente no período de descanso. 
+
+### Quem comete a violência doméstica e familiar? 
+
+```{r relacionamento-incidente}
+feminicidio::partes_tidy |>
+  dplyr::select(ano_bo, bo_autoria, relacionamento) |>
+  dplyr::filter(relacionamento != "NA") |>
+  dplyr::filter(relacionamento != "parentesco,envolvimento amoroso") |>
+  dplyr::filter(relacionamento != "parentesco,casamento") |>
+  dplyr::mutate(relacionamento  = stringr::str_to_title(relacionamento)) |>
+  dplyr::mutate(
+    relacionamento = dplyr::case_when(
+      stringr::str_detect(relacionamento, stringr::regex("Uniao Estavel")) ~ "União Estável",
+      stringr::str_detect(relacionamento, stringr::regex("Nenhuma Relacao")) ~ "Nenhuma Relação",
+      TRUE ~ relacionamento
+    )
+  ) |>
+  dplyr::group_by(ano_bo, relacionamento) |>
+  dplyr::count(relacionamento) |>
+  ggplot2::ggplot(ggplot2::aes(x = n, y = relacionamento, fill =  relacionamento)) +
+  ggplot2::geom_boxplot(position = "dodge", alpha = 0.5) +
+  ggplot2::scale_fill_manual(values = c("#8282ee", "#dc1edc", "#8eacff", "#b882ee", "#e49aa5")) +
+  ggplot2::labs(x = "Incidentes", y = "Relacionamento") +
+  ggplot2::theme_minimal(10) +
+  ggplot2::theme(legend.position = "none") 
+```
+
+Sabemos que o agressor poderá ser o marido, convivente, namorado, irmãos, cunhado, cunhada, sogro, sogra, e outros, independentemente do sexo ou grau de parentesco com a vítima. Atualmente, também se reconhece a aplicação da lei nas relações homoafetivas entre mulheres.
+
+Percebemos na figura acima que ao autor do crime e a sua relação com a vítima  o nº de incidentes (ocorrências registradas) é muito mais atenuante quando tem qualquer tipo de envolvimento amoroso, concluindo então que o agressor não será apenas o marido ou companheiro.
 
 
 
+##### Denuncie 
 
+É perceptivel que esse cenário é muito difícil e traumático. Caso você queria ajudar uma vítima de violência doméstica denuncie nos seguintes canais: 
 
+- Disque 180 – Central de Atendimento à Mulher, para denúncias, ou
+- Disque 190 – Polícia Militar, para atuação emergencial. 
 
 
 <img src='man/figs/feminista.png' align="left" height="139" /></a>
 
-_"Feminismo é um movimento para acabar com sexismo, exploração sexista e opressão"_ <font size="1">1</font>
-
- <font size="1"> [1]:BUENO, Winnie. _Feminist Theory: From Margin to Center_ [Teoria feminista: da margem ao centro]. Sounth End Press. 1984. </font>
+_"Feminismo é um movimento para acabar com sexismo, exploração sexista e opressão"_ (BUENO, Winnie. _Feminist Theory: From Margin to Center_ [Teoria feminista: da margem ao centro]. Sounth End Press. 1984.)
